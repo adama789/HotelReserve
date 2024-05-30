@@ -19,7 +19,7 @@ The **Hotel Reservation System** is a web application designed to manage hotel b
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/adama789/HotelReservationSystem.git
-   cd HotelReservationSystem
+   cd Hotel-Reservation-System/Hotel-Reservation-System/Hotel-Reservation-System
 2. **Update the database**:
    ```bash
    dotnet ef database update
