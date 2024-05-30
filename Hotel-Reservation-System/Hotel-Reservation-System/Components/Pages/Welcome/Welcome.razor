@@ -1,0 +1,67 @@
+﻿@page "/"
+@using HotelReservationSystem.Components.Pages.Welcome.Components
+
+@inject ProtectedSessionStorage protectedSessionStore
+@inject UserManager<User> userManager
+@inject NavigationManager navigationManager
+
+@rendermode InteractiveServer
+
+<div class="welcome">
+    <div class="main-menu">
+        <div class="main-menu__title">
+            <h1><Typewriter Builder="@typewriter" /></h1>
+        </div>
+        <div class="main-menu__buttons">
+            <LoginModal @ref="loginModal"/>
+            <RegisterModal @ref="registerModal"/>
+            <Button class="shadow-none mx-2" Color="ButtonColor.Dark" Size="BlazorBootstrap.Size.Large" @onclick="ShowLogin">Zaloguj</Button>
+            <Button class="shadow-none mx-2" Color="ButtonColor.Dark" Size="BlazorBootstrap.Size.Large" @onclick="ShowRegister">Zarejestruj</Button>
+        </div>
+        <div class="main-menu__stars">
+            <h1>★ ★ ★ ★ ★</h1>
+        </div>
+    </div>
+</div>
+
+@code {
+    SessionController sessionController = new();
+    User? user = new();
+    TypewriterBuilder typewriter = new TypewriterBuilder(defaultCharacterPause: 6)
+        .TypeString("Hotel Reserve", 100)
+        .Pause(2000)
+        .DeleteAll(30)
+        .TypeString("Projekt zaliczeniowy C#", 100)
+        .Pause(2000)
+        .DeleteAll(30)
+        .TypeString("Adam Cedro", 100)
+        .Pause(2000)
+        .DeleteAll(30)
+        .Pause(500)
+        .Loop();
+
+    private LoginModal loginModal = default!;
+    private RegisterModal registerModal = default!;
+
+    private async Task ShowLogin()
+    {
+        sessionController.username = await sessionController.GetSessionStorage(protectedSessionStore);
+
+        if (sessionController.username != "")
+        {
+            user = await userManager.FindByNameAsync(sessionController.username);
+
+            if (user is not null)
+                sessionController.NavigateToByRole(user, navigationManager);
+            else
+                await loginModal.ShowAsync();
+        }
+        else
+            await loginModal.ShowAsync();
+    }
+
+    private async Task ShowRegister()
+    {
+        await registerModal.ShowAsync();
+    }
+}

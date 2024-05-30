@@ -1,0 +1,92 @@
+﻿@using HotelReservationSystem.Components.Data
+@inject DataContext dbContext
+
+<Modal @ref="roomAddModal" title="Dodaj pokój" IsVerticallyCentered="true">
+    <BodyTemplate>
+        <div class="add-room">
+            <label for="uname"><b>Numer</b></label>
+            <input type="number" placeholder="Wprowadź id" name="uname" required autocomplete="off" @bind="roomModel.Id">
+
+			<label for="uname"><b>Typ: [1, 2, 3, 4] osobowe</b></label>
+			<input type="number" placeholder="Wprowadź typ pokoju [1, 2, 3, 4]" name="uname" required autocomplete="off" @bind="roomModel.RoomType.Id">
+
+			@if (ErrorMessages.Any())
+			{
+				<div class="alert alert-danger" role="alert">
+					@foreach (var error in ErrorMessages)
+					{
+						<p>@error</p>
+					}
+				</div>
+			}
+
+			@if (SuccessMessages.Any())
+			{
+				<div class="alert alert-success" role="alert">
+					@foreach (var success in SuccessMessages)
+					{
+						<p>@success</p>
+					}
+				</div>
+			}
+		</div>
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button class="shadow-none" Color=" ButtonColor.Secondary" @onclick="OnHideModalClick">Cofnij</Button>
+        <Button class="shadow-none" Color="ButtonColor.Dark" @onclick="AddRoomOnClick">Gotowe</Button>
+    </FooterTemplate>
+</Modal>
+
+@code {
+	public Modal roomAddModal { get; private set; } = default!;
+	RoomModel roomModel = new();
+	private List<string> ErrorMessages { get; set; } = new List<string>();
+	private List<string> SuccessMessages { get; set; } = new List<string>();
+
+	protected override void OnInitialized()
+	{
+		ErrorMessages.Clear();
+		SuccessMessages.Clear();
+	}
+
+	public async Task ShowAsync()
+	{
+		await roomAddModal.ShowAsync();
+	}
+
+	private async Task OnHideModalClick()
+	{
+		await roomAddModal.HideAsync();
+	}
+
+	private async Task AddRoomOnClick()
+	{
+		RoomType ?roomType = new();
+		ErrorMessages.Clear();
+		SuccessMessages.Clear();
+
+		if (RoomType.IsRoomTypeCorrect(roomModel))
+			roomType = dbContext.RoomTypes.FirstOrDefault(rt => rt.Id == roomModel.RoomType.Id);
+		else
+		{
+			ErrorMessages.Add("Dostępne są pokoje: 1, 2, 3, 4 osobowe.");
+			return;
+		}
+
+		if (Room.DoesRoomIdAlreadyExist(dbContext, roomModel))
+		{
+			ErrorMessages.Add("Pokój o takim id już istnieje.");
+			return;
+		}
+
+		if (roomType is not null)
+		{
+			await Room.AddRoom(dbContext, roomType, roomModel);
+
+			ErrorMessages.Clear();
+			SuccessMessages.Add("Pomyślnie dodano pokój.");
+		}
+		else
+			ErrorMessages.Add("Błąd");
+	}
+}

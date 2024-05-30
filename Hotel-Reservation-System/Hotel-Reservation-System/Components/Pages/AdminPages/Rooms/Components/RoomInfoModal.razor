@@ -1,0 +1,91 @@
+﻿@using HotelReservationSystem.Components.Data
+@inject IJSRuntime jsRuntime
+@inject DataContext dbContext;
+
+@rendermode InteractiveServer
+
+<ConfirmDialog @ref="dialog" />
+<Modal @ref="roomInfoModal" title="Informacje" IsVerticallyCentered="true">
+	<BodyTemplate>
+		<div class="info-main">
+			<div class="photo">
+				<img src="/Assets/door-icon.png" />
+			</div>
+			<div class="room-info">
+				<h5>Numer: @Room.Id</h5>
+				<h5>Typ: @Room.Name</h5>
+				<h5>Cena: @Room.PricePerNight zł / noc</h5>
+			</div>
+		</div>
+		@if (ErrorMessages.Any())
+		{
+			<div class="mt-1 alert alert-danger" role="alert">
+				@foreach (var error in ErrorMessages)
+				{
+					<p>@error</p>
+				}
+			</div>
+		}
+	</BodyTemplate>
+	<FooterTemplate>
+		<Button class="shadow-none mx-2" Color="ButtonColor.Secondary" @onclick="OnHideModalClick">Close</Button>
+		<Button class="shadow-none mx-2" Color="ButtonColor.Danger" @onclick="RemoveRoomOnClick">Usuń</Button>
+	</FooterTemplate>
+</Modal>
+
+@code {
+	public Modal ModalRef { get; private set; } = default!;
+	private Modal roomInfoModal = default!;
+	Room Room = new();
+	private ConfirmDialog dialog = default!;
+	private List<string> ErrorMessages { get; set; } = new List<string>();
+
+	public async Task ShowAsync(Room room)
+	{
+		ErrorMessages.Clear();
+		Room = room;
+		await roomInfoModal.ShowAsync();
+	}
+
+	private async Task OnHideModalClick()
+	{
+		await roomInfoModal.HideAsync();
+	}
+
+	private async Task RemoveRoomOnClick()
+	{
+		ErrorMessages.Clear();
+
+		if (Room is not null)
+		{
+			if (!await Reservation.IsRoomReserved(dbContext, Room))
+				await ShowConfirmationAsync();
+			else
+				ErrorMessages.Add("Pokój jest zarezerwowany, nie można usunąć!");
+			return;
+		}
+	}
+
+	private async Task ShowConfirmationAsync()
+	{
+		var options = new ConfirmDialogOptions
+			{
+				YesButtonText = "Tak",
+				YesButtonColor = ButtonColor.Danger,
+				NoButtonText = "Nie",
+				NoButtonColor = ButtonColor.Secondary,
+				IsVerticallyCentered = true
+			};
+
+		var confirmation = await dialog.ShowAsync(
+			title: "Uwaga",
+			message1: $"Czy na pewno chcesz usunąć pokój nr. {Room.Id}?",
+			confirmDialogOptions: options);
+
+		if (confirmation)
+		{
+			await Room.RemoveRoom(dbContext, Room);
+			await roomInfoModal.HideAsync();
+		}
+	}
+}

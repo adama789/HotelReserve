@@ -1,0 +1,38 @@
+﻿@using HotelReservationSystem.Components.Data
+
+@inject DataContext dbContext
+
+@rendermode InteractiveServer
+
+<Modal @ref="priceModal" Title="Cennik" IsVerticallyCentered="true">
+	<BodyTemplate>
+		<div class="prices">
+			@if (roomTypes.Any())
+			{
+				foreach(var rt in roomTypes)
+				{
+					<h5>@rt.Name: @rt.PricePerNight zł / noc</h5>
+				}
+			}
+		</div>
+	</BodyTemplate>
+	<FooterTemplate>
+		<Button class="shadow-none" Color="ButtonColor.Secondary" @onclick="OnHideModalClick">Cofnij</Button>
+	</FooterTemplate>
+</Modal>
+
+@code {
+	private Modal priceModal = default!;
+	List<RoomType> roomTypes = new();
+
+	public async Task ShowAsync()
+	{
+		roomTypes = RoomType.GetRoomTypes(dbContext);
+		await priceModal.ShowAsync();
+	}
+
+	private async Task OnHideModalClick()
+	{
+		await priceModal.HideAsync();
+	}
+}

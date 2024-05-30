@@ -1,0 +1,84 @@
+﻿@using HotelReservationSystem.Components.Data
+
+@inject DataContext dbContext
+@inject ProtectedSessionStorage protectedSessionStore
+@inject UserManager<User> userManager
+
+@rendermode InteractiveServer
+
+<ConfirmDialog @ref="dialog" />
+<Modal @ref="userReservationModal" Title="Rezerwacje" IsVerticallyCentered="true">
+	<BodyTemplate>
+		<div class="user-reservations">
+			@if (User.Reservations.Any())
+			{
+				@foreach (var r in User.Reservations)
+				{
+					<div class="alert alert-success mb-2" role="alert">
+						<h5>Id: @r.Id</h5>
+						<h5>Numer pokoju: @r.RoomId</h5>
+						<h5>Od: @r.CheckInDate</h5>
+						<h5>Do: @r.CheckOutDate</h5>
+						<h5>Cena: @r.TotalPrice</h5>
+						<Button class="shadow-none justify-content-left m-1" Color="ButtonColor.Danger" Size="BlazorBootstrap.Size.Medium" @onclick='(() => RemoveReservationOnClick(r))'>Anuluj rezerwację</Button>
+					</div>
+				}
+			}
+			else
+			{
+				<div class="alert alert-danger mb-2" role="alert">
+					<h5>Brak rezerwacji!</h5>
+				</div>
+			}
+
+		</div>
+	</BodyTemplate>
+	<FooterTemplate>
+		<Button class="shadow-none" Color="ButtonColor.Secondary" @onclick="OnHideModalClick">Cofnij</Button>
+	</FooterTemplate>
+</Modal>
+
+@code {
+	private Modal userReservationModal = default!;
+	User User = new();
+	private ConfirmDialog dialog = default!;
+
+	public async Task ShowAsync(User user)
+	{
+		User = user;
+		await userReservationModal.ShowAsync();
+	}
+
+	private async Task OnHideModalClick()
+	{
+		await userReservationModal.HideAsync();
+	}
+
+	private async Task RemoveReservationOnClick(Reservation reservation)
+	{
+		await ShowConfirmationAsync(reservation);
+	}
+
+	private async Task ShowConfirmationAsync(Reservation reservation)
+	{
+		var options = new ConfirmDialogOptions
+			{
+				YesButtonText = "Tak",
+				YesButtonColor = ButtonColor.Danger,
+				NoButtonText = "Nie",
+				NoButtonColor = ButtonColor.Secondary,
+				IsVerticallyCentered = true
+			};
+
+		var confirmation = await dialog.ShowAsync(
+			title: "Uwaga",
+			message1: $"Czy na pewno chcesz usunąć rezerwację nr. {reservation.Id}?",
+			confirmDialogOptions: options);
+
+		if (confirmation)
+		{
+			await Reservation.RemoveReservation(dbContext, reservation);
+			await OnHideModalClick();
+		}
+	}
+}

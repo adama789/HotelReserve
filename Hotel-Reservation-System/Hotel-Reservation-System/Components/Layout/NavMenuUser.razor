@@ -1,0 +1,54 @@
+﻿@using HotelReservationSystem.Components.Data
+@using HotelReservationSystem.Components.Layout.Components
+@inject ProtectedSessionStorage protectedSessionStore
+@inject NavigationManager navigationManager
+@inject UserManager<User> userManager
+@inject DataContext dbContext
+
+@rendermode InteractiveServer
+<nav>
+    <PriceModal @ref="priceModal"/>
+    <UserReservationModal @ref="userReservationModal"/>
+    <ul class="left">
+        <li><a href="/user">Zarezerwuj</a></li>
+        <li><a @onclick="ShowPriceOnClick">Cennik</a></li>
+
+    </ul>
+    <div class="logo">
+        <h1>★ ★ ★ ★ ★</h1>
+    </div>
+    <ul class="right">
+        <li><a @onclick="ShowReservationsOnClick">Rezerwacje</a></li>
+        <li><a href="" @onclick="Logout">Wyloguj</a></li>
+    </ul>
+</nav>
+
+@code {
+    private PriceModal priceModal = default!;
+    private UserReservationModal userReservationModal = default!;
+
+    private async Task Logout()
+    {
+        await protectedSessionStore.SetAsync("sessionStorage", "");
+        navigationManager.NavigateTo("/");
+    }
+
+    private async Task ShowPriceOnClick()
+    {
+        await priceModal.ShowAsync();
+    }
+
+    private async Task ShowReservationsOnClick()
+    {
+        SessionController sessionController = new();
+
+        sessionController.username = await sessionController.GetSessionStorage(protectedSessionStore);
+        var user = await userManager.FindByNameAsync(sessionController.username);
+        if (user is not null)
+        {
+            user.Reservations = await Reservation.GetUserReservations(dbContext, user);
+
+            await userReservationModal.ShowAsync(user);
+        }
+    }
+}

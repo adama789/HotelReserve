@@ -1,0 +1,13 @@
+﻿@page "/access-denied"
+
+@inject NavigationManager navigationManager
+
+<div class="denied">
+	<Callout Type="CalloutType.Danger" HideHeading=true>
+		<h3>Brak dostępu</h3>
+		<p>Nie masz uprawnień, aby uzyskać dostęp do tej strony.</p>
+		<NavLink class="nav-link" href="/" Match="NavLinkMatch.All">
+			<span aria-hidden="true"><h5>Wróć</h5></span>
+		</NavLink>
+	</Callout>
+</div>

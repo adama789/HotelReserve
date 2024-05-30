@@ -1,0 +1,87 @@
+﻿@page "/accounts"
+@using HotelReservationSystem.Components.Layout
+@using HotelReservationSystem.Components.Pages.AdminPages.Accounts.Components
+@using HotelReservationSystem.Components.Pages.Welcome.Components
+
+@inject UserManager<User> userManager
+@inject ProtectedSessionStorage protectedSessionStore
+@inject NavigationManager navigationManager
+
+@rendermode InteractiveServer
+
+<div class="admin-accounts">
+    <NavMenuAdmin></NavMenuAdmin>
+    <UserInfoModal @ref="userInfoModal"></UserInfoModal>
+    <div class="accounts">
+        <div class="main-menu__title">
+            <h1>U Ż Y T K O W N I C Y</h1>
+        </div>
+        <RegisterModal @ref="registerModal"/>
+        <Button class="shadow-none mb-4 w-100 justify-content-center" Color="ButtonColor.Dark" Size="BlazorBootstrap.Size.Medium" @onclick="AddUserOnClick">Dodaj konto</Button>
+        <Grid TItem="User"
+              AllowRowClick="true"
+              AllowSorting="true"
+              EmptyText="Brak użytkowników"
+              Class="table table-hover table-bordered table-striped"
+              DataProvider="AccountsDataProvider"
+              AllowPaging="true"
+              PageSize="8"
+              OnRowClick="OnRowClick"
+              PaginationItemsTextFormat="{0} - {1} na {2} rekordy"
+              Responsive="true">
+            <GridColumn TItem="User" HeaderText="Id" SortKeySelector="item => item.Id">
+                @context.Id
+            </GridColumn>
+            <GridColumn TItem="User" HeaderText="Login" SortKeySelector="item => item.UserName">
+                @context.UserName
+            </GridColumn>
+            <GridColumn TItem="User" HeaderText="E-mail">
+                @context.Email
+            </GridColumn>
+        </Grid>
+    </div>
+</div>
+@code {
+    SessionController sessionController = new();
+    private RegisterModal registerModal = default!;
+    private IEnumerable<User> Users = default!;
+    User? user = new();
+    public UserInfoModal userInfoModal = default!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            sessionController.username = await sessionController.GetSessionStorage(protectedSessionStore);
+
+            user = await userManager.FindByNameAsync(sessionController.username);
+
+            if (sessionController.IsAdminAccessDenied(user))
+            {
+                navigationManager.NavigateTo("/access-denied");
+                return;
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task AddUserOnClick()
+    {
+        await registerModal.ShowAsync();
+    }
+
+    private async Task<GridDataProviderResult<User>> AccountsDataProvider(GridDataProviderRequest<User> request)
+    {
+        if (Users is null)
+            Users = User.GetUsers(userManager);
+
+        return await Task.FromResult(request.ApplyTo(Users));
+    }
+
+    private async Task OnRowClick(GridRowEventArgs<User> args)
+    {
+        if (args.Item.UserName is not null)
+            await userInfoModal.ShowAsync(args.Item.UserName);
+    }
+}

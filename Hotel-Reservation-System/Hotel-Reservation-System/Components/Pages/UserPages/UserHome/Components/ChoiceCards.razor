@@ -1,0 +1,38 @@
+﻿@using HotelReservationSystem.Components.Data
+@rendermode InteractiveServer
+
+<div class="choice-list">
+    <ReservationModal @ref="reservationModal"/>
+
+    <div @onclick='() => ShowReservationModal(1)'>
+        <h2>Pokój jednoosobowy</h2>
+        <img src="/Assets/users-icon.png" />
+    </div>
+    <div @onclick='() => ShowReservationModal(2)'>
+        <h2>Pokój dwuosobowy</h2>
+        <img src="/Assets/users-icon.png" />
+        <img src="/Assets/users-icon.png" />
+    </div>
+    <div @onclick='() => ShowReservationModal(3)'>
+        <h2>Pokój trzyosobowy</h2>
+        <img src="/Assets/users-icon.png" />
+        <img src="/Assets/users-icon.png" />
+        <img src="/Assets/users-icon.png" />
+    </div>
+    <div @onclick='() => ShowReservationModal(4)'>
+        <h2>Pokój czteroosobowy</h2>
+        <img src="/Assets/users-icon.png" />
+        <img src="/Assets/users-icon.png" />
+        <img src="/Assets/users-icon.png" />
+        <img src="/Assets/users-icon.png" />
+    </div>
+</div>
+
+@code {
+    private ReservationModal reservationModal = default!;
+
+    private async Task ShowReservationModal(int roomType)
+    {
+        await reservationModal.ShowAsync(roomType);
+    }
+}

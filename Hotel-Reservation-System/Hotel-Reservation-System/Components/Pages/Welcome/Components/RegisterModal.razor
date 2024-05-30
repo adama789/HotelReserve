@@ -1,0 +1,156 @@
+﻿@inject UserManager<User> userManager
+
+<Modal @ref="ModalRef" title="Rejestracja" IsVerticallyCentered="true">
+    <BodyTemplate>
+        <div class="register">
+            <form>
+                <label for="email"><b>E-mail</b></label>
+                <input @bind="User.Email" type="email" placeholder="Wprowadź e-mail" name="email" required autocomplete="off" maxlength="36">
+
+                <label for="login"><b>Login</b></label>
+                <input @bind="User.Username" type="text" placeholder="Wprowadź login" name="login" required autocomplete="off" maxlength="14">
+
+                <label for="psw"><b>Hasło</b></label>
+                <input @bind="User.Password" type="password" placeholder="Wprowadź hasło" name="psw" required autocomplete="off" maxlength="36">
+            </form>
+            
+            @if (ErrorMessages.Any())
+            {
+                <div class="alert alert-danger" role="alert">
+                    @foreach (var error in ErrorMessages)
+                    {
+                        <p>@error</p>
+                    }
+                </div>
+            }
+
+            @if (SuccessMessages.Any())
+            {
+                <div class="alert alert-success" role="alert">
+                    @foreach (var success in SuccessMessages)
+                    {
+                        <p>@success</p>
+                    }
+                </div>
+            }
+        </div>
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button class="shadow-none" Color="ButtonColor.Secondary" @onclick="OnHideModalClick">Cofnij</Button>
+        <Button class="shadow-none" Color="ButtonColor.Dark" @onclick="Register">Zarejestruj</Button>
+    </FooterTemplate>
+</Modal>
+
+@code {
+    public Modal ModalRef { get; private set; } = default!;
+    UserModel User = new();
+
+    private List<string> ErrorMessages { get; set; } = new List<string>();
+    private List<string> SuccessMessages { get; set; } = new List<string>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        ErrorMessages.Clear();
+        SuccessMessages.Clear();
+        if (!await AdminExistsAsync())
+            SuccessMessages.Add("Zostanie utworzone konto Administratora.");
+    }
+
+    public async Task ShowAsync()
+    {
+        await ModalRef.ShowAsync();
+    }
+
+    private async Task OnHideModalClick()
+    {
+        ResetRegisterParameters();
+        ErrorMessages.Clear();
+        await ModalRef.HideAsync();
+    }
+
+    private void ResetRegisterParameters()
+    {
+        User.Email = "";
+        User.Username = "";
+        User.Password = "";
+    }
+
+    private async Task Register()
+    {
+        ErrorMessages.Clear();
+        SuccessMessages.Clear();
+
+        await IsUsernameTaken();
+        await IsEmailTaken();
+
+        var userMaxId = GetMaxUserId();
+        var user = new User { Id = userMaxId, UserName = User.Username, Email = User.Email, Role = "User" };
+
+        if (!await AdminExistsAsync())
+        {
+            user = new User { Id = userMaxId, UserName = User.Username, Email = User.Email, Role = "Admin" };
+            SuccessMessages.Add("Zostanie utworzone konto Administratora.");
+        }
+
+        var createUser = await userManager.CreateAsync(user, User.Password);
+
+        if (createUser.Succeeded)
+        {
+            ErrorMessages.Clear();
+            SuccessMessages.Clear();
+            SuccessMessages.Add("Rejestracja przebiegła pomyślnie!");
+            ResetRegisterParameters();
+        }
+        else
+            ReadPasswordErrors(createUser);
+    }
+
+    private async Task IsUsernameTaken()
+    {
+        var existingUser = await userManager.FindByNameAsync(User.Username);
+        if (existingUser != null || User.Username.Length <= 0)
+        {
+            ErrorMessages.Add("Konto o takim loginie już istnieje.");
+            return;
+        }
+    }
+
+    private async Task IsEmailTaken()
+    {
+        var existingUser = await userManager.FindByEmailAsync(User.Email);
+        if (existingUser != null)
+        {
+            ErrorMessages.Add("Konto o takim adresie e-mail już istnieje.");
+            return;
+        }
+    }
+
+    private string GetMaxUserId()
+    {
+        var usedIds = userManager.Users.Select(u => int.Parse(u.Id)).ToList();
+        int maxId = usedIds.Any() ? usedIds.Max() : 0;
+        return (maxId + 1).ToString();
+    }
+
+    private async Task<bool> AdminExistsAsync()
+    {
+        var users = userManager.Users;
+
+        return await users.AnyAsync(user => user.Role == "Admin");
+    }
+
+    private void ReadPasswordErrors(IdentityResult result)
+    {
+        foreach (var error in result.Errors)
+        {
+            if (error.Code == "PasswordTooShort")
+                ErrorMessages.Add("Hasło musi posiadać conajmniej 6 znaków.");
+            if (error.Code == "PasswordRequiresDigit")
+                ErrorMessages.Add("Hasło musi posiadać conajmniej jedną cyfrę ('0'-'9').");
+            if (error.Code == "PasswordRequiresLower")
+                ErrorMessages.Add("Hasło musi posiadać conajmniej jedną małą literę ('a'-'z').");
+            if (error.Code == "PasswordRequiresUpper")
+                ErrorMessages.Add("Hasło musi posiadać conajmniej jedną dużą literę ('A'-'Z').");
+        }
+    }
+}

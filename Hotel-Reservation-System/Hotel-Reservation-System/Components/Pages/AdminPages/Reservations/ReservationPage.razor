@@ -1,0 +1,97 @@
+﻿@page "/reservations"
+@using HotelReservationSystem.Components.Layout
+@using HotelReservationSystem.Components.Pages.AdminPages.Accounts.Components
+@using HotelReservationSystem.Components.Data
+@using HotelReservationSystem.Components.Pages.AdminPages.Reservations.Components
+
+@inject UserManager<User> userManager
+@inject ProtectedSessionStorage protectedSessionStore
+@inject NavigationManager navigationManager
+@inject DataContext dbContext
+
+@rendermode InteractiveServer
+
+<div class="admin-reservations">
+    <NavMenuAdmin></NavMenuAdmin>
+    <div class="reservations">
+        <div class="main-menu__title">
+            <h1>R E Z E R W A C J E</h1>
+        </div>
+        <Button class="shadow-none mb-4 w-100 justify-content-center" Color="ButtonColor.Dark" Size="BlazorBootstrap.Size.Medium" @onclick="RefreshReservationsOnClick">Odśwież rezerwacje</Button>
+        <ReservationInfoModal @ref="reservationInfoModal"></ReservationInfoModal>
+        <Grid TItem="Reservation"
+              AllowRowClick="true"
+              AllowSorting="true"
+              EmptyText="Brak rezerwacji"
+              Class="table table-hover table-bordered table-striped"
+              DataProvider="ReservationsDataProvider"
+              AllowPaging="true"
+              PageSize="8"
+              OnRowClick="OnRowClick"
+              PaginationItemsTextFormat="{0} - {1} na {2} rekordy"
+              Responsive="true">
+            <GridColumn TItem="Reservation" HeaderText="Id rezerwacji" SortKeySelector="item => item.Id">
+                @context.Id
+            </GridColumn>
+            <GridColumn TItem="Reservation" HeaderText="Numer pokoju">
+                @context.RoomId
+            </GridColumn>
+            <GridColumn TItem="Reservation" HeaderText="Klient">
+                @context.Customer
+            </GridColumn>
+            <GridColumn TItem="Reservation" HeaderText="Cena">
+                @context.TotalPrice zł
+            </GridColumn>
+            <GridColumn TItem="Reservation" HeaderText="Pobyt od">
+                @context.CheckInDate
+            </GridColumn>
+            <GridColumn TItem="Reservation" HeaderText="Pobyt do">
+                @context.CheckOutDate
+            </GridColumn>
+        </Grid>
+    </div>
+</div>
+
+@code {
+    SessionController sessionController = new();
+    public IEnumerable<Reservation> reservations = default!;
+    private User? user = null;
+    private ReservationInfoModal reservationInfoModal = null!;
+    int removedReservations = 0;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            sessionController.username = await sessionController.GetSessionStorage(protectedSessionStore);
+
+            user = await userManager.FindByNameAsync(sessionController.username);
+
+            if (sessionController.IsAdminAccessDenied(user))
+            {
+                navigationManager.NavigateTo("/access-denied");
+                return;
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task<GridDataProviderResult<Reservation>> ReservationsDataProvider(GridDataProviderRequest<Reservation> request)
+    {
+        if (reservations is null)
+            reservations = Reservation.GetReservations(dbContext);
+
+        return await Task.FromResult(request.ApplyTo(reservations));
+    }
+
+    private async Task OnRowClick(GridRowEventArgs<Reservation> args)
+    {
+        await reservationInfoModal.ShowAsync(args.Item);
+    }
+
+    private async Task RefreshReservationsOnClick()
+    {
+        removedReservations = await Reservation.RemoveOutdatedReservations(dbContext);
+    }
+}

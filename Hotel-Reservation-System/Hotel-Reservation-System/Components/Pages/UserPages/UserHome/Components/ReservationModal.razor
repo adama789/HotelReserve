@@ -1,0 +1,198 @@
+﻿@using HotelReservationSystem.Components.Data
+@using BlazorDateRangePicker
+
+@inject UserManager<User> userManager
+@inject ProtectedSessionStorage protectedSessionStore
+@inject NavigationManager navigationManager
+@inject DataContext dbContext
+
+@rendermode InteractiveServer
+
+<Modal @ref="reservationModal" Title="Rezerwacja" IsVerticallyCentered="true" >
+    <BodyTemplate>
+		<div class="reservation">
+			<div class="date-picker">
+				<DateRangePicker class="form-control form-control-sm" 
+					CustomDateClass=""
+					placeholder="Wybierz termin"
+					MinDate="DateTimeOffset.Now"
+					MaxDate="DateTimeOffset.Now.AddYears(2)"
+					MinSpan="TimeSpan.FromDays(1)"
+					Opens="SideType.Center"
+					@bind-StartDate="startDate"
+					@bind-EndDate="endDate">
+					<ButtonsTemplate>
+						<button class="cancelBtn btn btn-sm btn-default"
+								@onclick="@context.ClickCancel" type="button">
+							Anuluj
+						</button>
+						<button class="applyBtn btn btn-sm btn-dark" @onclick="@context.ClickApply"
+								disabled="@(context.TStartDate == null || context.TEndDate == null)"
+								type="button">
+							Wybierz
+						</button>
+					</ButtonsTemplate>
+				</DateRangePicker>
+
+			</div>
+			@if (ErrorMessages.Any())
+			{
+				<div class="mt-4 alert alert-danger" role="alert">
+					@foreach (var success in ErrorMessages)
+					{
+						<p>@success</p>
+					}
+				</div>
+			} 
+			else
+			{
+				@if (PriceMessage != 0)
+				{
+					<div class="mt-4 alert alert-light" role="alert">
+						<p>Do zapłaty: @PriceMessage zł</p>
+					</div>
+				}
+				else
+				{
+					@if (SuccessMessage != "")
+					{
+						<div class="mt-4 alert alert-success" role="alert">
+							<p>@SuccessMessage</p>
+						</div>
+					}
+				}
+			}
+		</div>
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button class="shadow-none" Color="ButtonColor.Secondary" @onclick="OnHideModalClick">Cofnij</Button>
+		<Button class="shadow-none" Color="ButtonColor.Dark" @onclick="ReserveRoom">Zarezerwuj</Button>
+    </FooterTemplate>
+</Modal>
+
+@code {
+	private Modal reservationModal = default!;
+	string ?username;
+
+	ReservationModel reservationModel = new();
+	List<Room> availableRooms = new();
+	RoomType RoomType = new();
+	int roomTypeId;
+
+	private string SuccessMessage = "";
+	private List<string> ErrorMessages { get; set; } = new List<string>();
+	double PriceMessage = 0;
+
+	private DateTimeOffset? startDate
+	{
+		get => reservationModel.CheckInDate == default ? (DateTimeOffset?)null : new DateTimeOffset(reservationModel.CheckInDate).ToOffset(TimeSpan.Zero);
+		set
+		{
+			if (value.HasValue)
+			{
+				var localDateTime = value.Value.LocalDateTime;
+				reservationModel.CheckInDate = new DateTime(localDateTime.Year, localDateTime.Month, localDateTime.Day, 14, 0, 0, DateTimeKind.Utc);
+			}
+			else
+				reservationModel.CheckInDate = default;
+		}
+	}
+
+	private DateTimeOffset? endDate
+	{
+		get => reservationModel.CheckOutDate == default ? (DateTimeOffset?)null : new DateTimeOffset(reservationModel.CheckOutDate).ToOffset(TimeSpan.Zero);
+		set
+		{
+			if (value.HasValue)
+			{
+				var localDateTime = value.Value.LocalDateTime;
+				reservationModel.CheckOutDate = new DateTime(localDateTime.Year, localDateTime.Month, localDateTime.Day, 12, 0, 0, DateTimeKind.Utc);
+			}
+			else
+				reservationModel.CheckOutDate = default;
+
+			ErrorMessages.Clear();
+			SetPriceAfterChoosingDate();
+		}
+	}
+
+	private void SetPriceAfterChoosingDate()
+	{
+		PriceMessage = Reservation.CalculateReservationPrice(reservationModel, RoomType);
+	}
+
+	public async Task ShowAsync(int roomType)
+	{
+		SetStartingParameters();
+		await GetUser();
+
+		roomTypeId = roomType;
+		RoomType = await RoomType.GetRoomTypeById(dbContext, roomType);
+		await reservationModal.ShowAsync();
+	}
+
+	private void SetStartingParameters()
+	{
+		SuccessMessage = "";
+		ErrorMessages.Clear();
+		PriceMessage = 0;
+	}
+
+	private async Task GetUser()
+	{
+		username = await GetSessionStorage();
+		reservationModel.User = await userManager.FindByNameAsync(username) ?? new();
+	}
+
+	private async Task<string> GetSessionStorage()
+	{
+		var result = await protectedSessionStore.GetAsync<string>("sessionStorage");
+
+		if (result.Value is not null)
+			return result.Success ? result.Value : "";
+		return "";
+	}
+
+	private async Task OnHideModalClick()
+	{
+		await reservationModal.HideAsync();
+	}
+
+	private async Task ReserveRoom()
+	{
+		ErrorMessages.Clear();
+
+		if (startDate is null || endDate is null)
+		{
+			ErrorMessages.Add("Musisz wybrać termin!");
+			return;
+		}
+
+		RoomType = await RoomType.GetRoomTypeById(dbContext, roomTypeId);
+		availableRooms = Room.GetAvailableRoomsByType(dbContext, RoomType.Name, reservationModel.CheckInDate, reservationModel.CheckOutDate);
+
+		if (reservationModel.User is not null && availableRooms.Count >= 1)
+			await ReserveValidRoom();
+		else
+			ErrorMessages.Add("Przepraszamy, brak dostępnych pokoi w wybranym okresie.");
+	}
+
+	private async Task ReserveValidRoom()
+	{
+		reservationModel.ReservationId = await Reservation.GetNextReservationId(dbContext);
+		reservationModel.ReservationRoom = availableRooms.First();
+		reservationModel.Customer = username ?? "null";
+		reservationModel.TotalPrice = Reservation.CalculateReservationPrice(reservationModel, RoomType);
+
+		await Reservation.ReserveRoom(dbContext, reservationModel);
+		SetParametersAfterSuccessfulReservation();
+	}
+
+	private void SetParametersAfterSuccessfulReservation()
+	{
+		SuccessMessage = "Rezerwacja przebiegła pomyślnie!";
+		startDate = null;
+		endDate = null;
+		PriceMessage = 0;
+	}
+}

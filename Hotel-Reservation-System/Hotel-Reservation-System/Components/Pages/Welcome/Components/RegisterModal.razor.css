@@ -1,0 +1,16 @@
+﻿.register {
+    display: flex;
+    flex-direction: column;
+}
+
+.register label {
+    margin-bottom: 0.5rem;
+}
+
+.register input {
+    padding: 0.5rem;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+}

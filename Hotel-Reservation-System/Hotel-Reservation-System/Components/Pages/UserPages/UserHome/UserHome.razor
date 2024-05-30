@@ -1,0 +1,42 @@
+﻿@page "/user"
+
+@using HotelReservationSystem.Components.Layout
+@using HotelReservationSystem.Components.Pages.UserPages.UserHome.Components
+@inject UserManager<User> userManager
+@inject ProtectedSessionStorage protectedSessionStore
+@inject NavigationManager navigationManager
+
+@rendermode InteractiveServer
+
+<div class="user-home">
+    <NavMenuUser />
+    <div class="main-menu__title">
+        <h1>Witaj @user?.UserName!</h1>
+        <h3>Wybierz pokój:</h3>
+    </div>
+    <div class="choice-cards">
+        <ChoiceCards></ChoiceCards>
+    </div>
+</div>
+@code {
+    SessionController sessionController = new();
+    User ?user = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            sessionController.username = await sessionController.GetSessionStorage(protectedSessionStore);
+
+            if (sessionController.IsUserAccessDenied(sessionController.username))
+            {
+                navigationManager.NavigateTo("/access-denied");
+                return;
+            }
+
+            user = await userManager.FindByNameAsync(sessionController.username);
+
+            StateHasChanged();
+        }
+    }
+}

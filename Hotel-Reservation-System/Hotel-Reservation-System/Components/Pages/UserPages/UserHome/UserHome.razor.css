@@ -1,0 +1,29 @@
+﻿.choice-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-gap: 40px;
+}
+
+.user-home {
+    text-align: center;
+}
+
+.main-menu__title h1 {
+    font-size: 64px;
+    font-weight: 500;
+    user-select: none;
+}
+
+.main-menu__title h3 {
+    margin-top: 30px;
+    user-select: none;
+}
+
+.main-menu__title {
+    margin-top: 12vh;
+    margin-bottom: 7vh;
+    position: center;
+}
+
+
+

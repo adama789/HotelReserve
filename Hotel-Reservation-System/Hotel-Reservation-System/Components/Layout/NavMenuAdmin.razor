@@ -1,0 +1,25 @@
+﻿@inject ProtectedSessionStorage protectedSessionStore
+@inject NavigationManager navigationManager
+@rendermode InteractiveServer
+<nav>
+    <ul class="left">
+        <li><a href="/accounts">Użytkownicy</a></li>
+        <li><a href="/rooms">Pokoje</a></li>
+
+    </ul>
+    <div class="logo">
+        <h1><a href="/admin">A D M I N</a></h1>
+    </div>
+    <ul class="right">
+        <li><a href="/reservations">Rezerwacje</a></li>
+        <li><a href="" @onclick="Logout">Wyloguj</a></li>
+    </ul>
+</nav>
+
+@code {
+    private async Task Logout()
+    {
+        await protectedSessionStore.SetAsync("sessionStorage", "");
+        navigationManager.NavigateTo("/");
+    }
+}

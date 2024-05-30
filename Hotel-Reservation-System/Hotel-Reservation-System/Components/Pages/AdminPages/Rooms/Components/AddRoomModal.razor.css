@@ -1,0 +1,16 @@
+﻿.add-room {
+    display: flex;
+    flex-direction: column;
+}
+
+.add-room label {
+    margin-bottom: 0.5rem;
+}
+
+.add-room input {
+    padding: 0.5rem;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+}

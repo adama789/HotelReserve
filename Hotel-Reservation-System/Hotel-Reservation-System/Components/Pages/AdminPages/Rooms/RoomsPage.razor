@@ -1,0 +1,88 @@
+﻿@page "/rooms"
+@using HotelReservationSystem.Components.Layout
+@using HotelReservationSystem.Components.Pages.AdminPages.Accounts.Components
+@using HotelReservationSystem.Components.Data
+@using HotelReservationSystem.Components.Pages.AdminPages.Rooms.Components
+
+@inject UserManager<User> userManager
+@inject ProtectedSessionStorage protectedSessionStore
+@inject NavigationManager navigationManager
+@inject DataContext dbContext
+
+@rendermode InteractiveServer
+
+<div class="admin-rooms">
+    <NavMenuAdmin></NavMenuAdmin>
+    <div class="rooms">
+        <div class="main-menu__title">
+            <h1>P O K O J E</h1>
+        </div>
+        <AddRoomModal @ref="addRoomModal"></AddRoomModal>
+        <RoomInfoModal @ref="roomInfoModal"></RoomInfoModal>
+        <Button class="shadow-none mb-4 w-100 justify-content-center" Color="ButtonColor.Dark" Size="BlazorBootstrap.Size.Medium" @onclick="AddRoomModalOnClick">Dodaj pokój</Button>
+            <Grid TItem="Room"
+              AllowRowClick="true"
+              AllowSorting="true"
+              EmptyText="Brak pokojów"
+              Class="table table-hover table-bordered table-striped"
+              DataProvider="UsersDataProvider"
+              AllowPaging="true"
+              PageSize="8"
+              OnRowClick="OnRowClick"
+              PaginationItemsTextFormat="{0} - {1} na {2} rekordy"
+              Responsive="true">
+            <GridColumn TItem="Room" HeaderText="Numer pokoju" SortKeySelector="item => item.Id">
+                @context.Id
+            </GridColumn>
+            <GridColumn TItem="Room" HeaderText="Typ pokoju">
+                @context.Name
+            </GridColumn>
+            <GridColumn TItem="Room" HeaderText="Cena za noc">
+                @context.PricePerNight zł
+            </GridColumn>
+        </Grid>
+    </div>
+</div>
+@code {
+    SessionController sessionController = new();
+    private IEnumerable<Room> rooms = default!;
+    User? user = new();
+    private AddRoomModal addRoomModal = default!;
+    private RoomInfoModal roomInfoModal = default!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            sessionController.username = await sessionController.GetSessionStorage(protectedSessionStore);
+
+            user = await userManager.FindByNameAsync(sessionController.username);
+
+            if (sessionController.IsAdminAccessDenied(user))
+            {
+                navigationManager.NavigateTo("/access-denied");
+                return;
+            }
+
+            StateHasChanged();
+        } 
+    }
+
+    private async Task AddRoomModalOnClick()
+    {
+        await addRoomModal.ShowAsync();
+    }
+
+    private async Task<GridDataProviderResult<Room>> UsersDataProvider(GridDataProviderRequest<Room> request)
+    {
+        if (rooms is null)
+            rooms = Room.GetRooms(dbContext);
+
+        return await Task.FromResult(request.ApplyTo(rooms));
+    }
+
+    private async Task OnRowClick(GridRowEventArgs<Room> args)
+    {
+         await roomInfoModal.ShowAsync(args.Item);
+    }
+}

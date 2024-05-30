@@ -1,0 +1,44 @@
+﻿@page "/admin"
+@using HotelReservationSystem.Components.Data
+@using HotelReservationSystem.Components.Layout
+@using HotelReservationSystem.Components.Pages.AdminPages.AdminHome.Components
+
+@inject UserManager<User> userManager
+@inject ProtectedSessionStorage protectedSessionStore
+@inject NavigationManager navigationManager
+@inject DataContext dbContext;
+
+@rendermode InteractiveServer
+
+<div class="admin-home">
+    <NavMenuAdmin />
+    <div class="main-menu__title">
+        
+    </div>
+    <div class="graph-cards">
+        <GraphCards></GraphCards>
+    </div>
+</div>
+
+@code {
+    SessionController sessionController = new();
+    User? user = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            sessionController.username = await sessionController.GetSessionStorage(protectedSessionStore);
+
+            user = await userManager.FindByNameAsync(sessionController.username);
+
+            if (sessionController.IsAdminAccessDenied(user))
+            {
+                navigationManager.NavigateTo("/access-denied");
+                return;
+            }
+
+            StateHasChanged();
+        }
+    }
+}

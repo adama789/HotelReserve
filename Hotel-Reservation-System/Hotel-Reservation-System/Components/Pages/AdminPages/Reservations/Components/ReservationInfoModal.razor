@@ -1,0 +1,76 @@
+﻿@using HotelReservationSystem.Components.Data
+@inject IJSRuntime jsRuntime
+@inject DataContext dbContext;
+
+@rendermode InteractiveServer
+
+<ConfirmDialog @ref="dialog" />
+<Modal @ref="reservationInfoModal" title="Informacje" IsVerticallyCentered="true">
+	<BodyTemplate>
+		<div class="info-main">
+			<div class="photo">
+				<img src="/Assets/calendar-icon.png" />
+			</div>
+			<div class="reservation-info">
+				<h5>Id: @Reservation.Id</h5>
+				<h5>Numer pokoju: @Reservation.RoomId</h5>
+				<h5>Klient: @Reservation.Customer</h5>
+				<h5>Od: @Reservation.CheckInDate</h5>
+				<h5>Do: @Reservation.CheckOutDate</h5>
+				<h5>Cena: @Reservation.TotalPrice zł</h5>
+			</div>
+		</div>
+	</BodyTemplate>
+	<FooterTemplate>
+		<Button class="shadow-none mx-2" Color="ButtonColor.Secondary" @onclick="OnHideModalClick">Close</Button>
+		<Button class="shadow-none mx-2" Color="ButtonColor.Danger" @onclick="RemoveReservationOnClick">Usuń</Button>
+	</FooterTemplate>
+</Modal>
+
+@code {
+	public Modal ModalRef { get; private set; } = default!;
+	private Modal reservationInfoModal = default!;
+	Reservation Reservation = new();
+
+	public async Task ShowAsync(Reservation reservation)
+	{
+		Reservation = reservation;
+		await reservationInfoModal.ShowAsync();
+	}
+
+	private async Task OnHideModalClick()
+	{
+		await reservationInfoModal.HideAsync();
+	}
+
+	private ConfirmDialog dialog = default!;
+
+	private async Task RemoveReservationOnClick()
+	{
+		if (Reservation is not null)
+			await ShowConfirmationAsync();
+	}
+
+	private async Task ShowConfirmationAsync()
+	{
+		var options = new ConfirmDialogOptions
+			{
+				YesButtonText = "Tak",
+				YesButtonColor = ButtonColor.Danger,
+				NoButtonText = "Nie",
+				NoButtonColor = ButtonColor.Secondary,
+				IsVerticallyCentered = true
+			};
+
+		var confirmation = await dialog.ShowAsync(
+			title: "Uwaga",
+			message1: $"Czy na pewno chcesz usunąć rezerwacje nr. {Reservation.Id}?",
+			confirmDialogOptions: options);
+
+		if (confirmation)
+		{
+			await Reservation.RemoveReservation(dbContext, Reservation);
+			await reservationInfoModal.HideAsync();
+		}
+	}
+}

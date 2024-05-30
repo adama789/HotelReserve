@@ -1,0 +1,67 @@
+﻿.chart-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 50px;
+    user-select: none;
+    resize: none;
+}
+    .chart-list h1 {
+        font-size: 30px;
+    }
+
+    .chart-list div {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        padding: 20px;
+        font-size: 13px;
+        font-weight: 300;
+        border-radius: 30px;
+        border: 3px solid #2d2f31;
+        transition: background 0.5s, transform 0.3s;
+        margin: 20px;
+        width: calc(120% - 40px);
+        max-width: 650px;
+        height: 35vh;
+        cursor: pointer;
+        overflow: hidden;
+        text-align: center;
+        resize: none;
+    }
+
+    .chart-list div:hover {
+        transform: translateY(-10px);
+    }
+
+        .chart-list div h2 {
+            font-size: 36px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            color: #2d2f31;
+            margin-top: 25px;
+        }
+
+        .chart-list div img {
+            width: 85px;
+            height: 85px;
+            object-fit: cover;
+            margin-top: 10px;
+        }
+
+        .chart-list div h4 {
+            margin-top: 20px;
+            font-size: 1px;
+            color: #2d2f31;
+        }
+
+@media (max-width: 768px) {
+    .graph-list div {
+        width: calc(100% - 40px);
+    }
+    .graph-list div h2 {
+        font-size: 33px;
+    }
+}

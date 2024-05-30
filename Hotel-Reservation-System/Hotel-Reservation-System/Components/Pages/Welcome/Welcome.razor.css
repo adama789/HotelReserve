@@ -1,0 +1,43 @@
+﻿.welcome {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 93vh;
+    text-decoration: none;
+}
+
+.main-menu {
+    text-align: center;
+}
+
+.btn:focus, .btn:active {
+    outline: none !important;
+    box-shadow: none;
+}
+
+.main-menu__title {
+    margin-bottom: 4vh;
+    user-select: none;
+}
+
+.main-menu__stars {
+    margin-top: 3vh;
+    user-select: none;
+}
+
+.main-menu__stars h1{
+    font-size: 36px;
+}
+
+.main-menu__title h1{
+    font-size: 60px;
+}
+
+.white-link {
+    text-decoration: none;
+}
+
+.main-menu__buttons {
+    align-items: center;
+    user-select: none;
+}

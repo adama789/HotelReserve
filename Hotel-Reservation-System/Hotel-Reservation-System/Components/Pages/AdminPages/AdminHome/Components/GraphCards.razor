@@ -1,0 +1,78 @@
+﻿@using HotelReservationSystem.Components.Data
+
+@inject DataContext dbContext
+@inject UserManager<User> userManager
+@inject NavigationManager navigationManager
+
+@rendermode InteractiveServer
+
+<div class="chart-list">
+    <div class="chart-container" @onclick='(() => navigationManager.NavigateTo("/rooms"))'>
+        <ApexChart TItem="GraphPoint"
+                   Options=optionsRooms>
+            <ApexPointSeries TItem="GraphPoint"
+                             Items="roomsPoints"
+                             SeriesType="@SeriesType.Area"
+                             Name="Pokoje"
+                             XValue="@(e => e.Index)"
+                             YValue="@(e => e.Index)"
+                             OrderByDescending="e => e.Y" />
+        </ApexChart>
+    </div>
+    <div class="chart-container" @onclick='(() => navigationManager.NavigateTo("/accounts"))'>
+        <ApexChart TItem="GraphPoint"
+                   Options=optionsUsers>
+            <ApexPointSeries TItem="GraphPoint"
+                             Items="usersPoints"
+                             SeriesType="@SeriesType.Area"
+                             Name="Konta"
+                             XValue="@(e => e.Index)"
+                             YValue="@(e => e.Index)"
+                             OrderByDescending="e => e.Y" />
+        </ApexChart>
+    </div>
+    <div class="chart-container" @onclick='(() => navigationManager.NavigateTo("/reservations"))'>
+        <ApexChart TItem="GraphPoint"
+                   Options=optionsReservations>
+            <ApexPointSeries TItem="GraphPoint"
+                             Items="reservationsPoints"
+                             SeriesType="@SeriesType.Area"
+                             Name="Rezerwacje"
+                             XValue="@(e => e.Index)"
+                             YValue="@(e => e.Index)"
+                             OrderByDescending="e => e.Y" />
+        </ApexChart>
+    </div>
+    <div class="chart-container" @onclick='(() => navigationManager.NavigateTo("/user"))'>
+        <h1>Przełącz na widok użytkownika</h1>
+        <img src="/Assets/users-icon.png"/>
+    </div>
+</div>
+
+@code {
+    private List<Room> rooms = new();
+    private List<GraphPoint> roomsPoints = new();
+    private ApexChartOptions<GraphPoint> optionsRooms = new ApexChartOptions<GraphPoint>();
+
+    private List<User> users = new();
+    private List<GraphPoint> usersPoints = new();
+    private ApexChartOptions<GraphPoint> optionsUsers = new ApexChartOptions<GraphPoint>();
+
+    private List<Reservation> reservations = new();
+    private List<GraphPoint> reservationsPoints = new();
+    private ApexChartOptions<GraphPoint> optionsReservations = new ApexChartOptions<GraphPoint>();
+
+    protected override void OnInitialized()
+    {
+        rooms = Room.GetRooms(dbContext);
+        users = User.GetUsers(dbContext);
+        reservations = Reservation.GetReservationsList(dbContext);
+        usersPoints = GraphPoint.GeneratePoints(users.Count);
+        roomsPoints = GraphPoint.GeneratePoints(rooms.Count);
+        reservationsPoints = GraphPoint.GeneratePoints(reservations.Count);
+
+        GraphPoint.SetChartOptions(optionsRooms);
+        GraphPoint.SetChartOptions(optionsUsers);
+        GraphPoint.SetChartOptions(optionsReservations);
+    }
+}

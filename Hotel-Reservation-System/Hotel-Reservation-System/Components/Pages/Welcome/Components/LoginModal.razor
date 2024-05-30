@@ -1,0 +1,77 @@
+﻿@using HotelReservationSystem.Components.Data
+@inject UserManager<User> userManager
+@inject ProtectedSessionStorage protectedSessionStore
+@inject NavigationManager navigationManager
+
+<Modal @ref="ModalRef" title="Logowanie" IsVerticallyCentered="true">
+    <BodyTemplate>
+        <div class="login">
+            <label for="uname"><b>Login</b></label>
+            <input type="text" placeholder="Wprowadź login" name="uname" required autocomplete="off" @bind="User.Username">
+
+            <label for="psw"><b>Hasło</b></label>
+            <input type="password" placeholder="Wprowadź hasło" name="psw" required autocomplete="off" @bind="User.Password">
+
+            @if (ErrorMessages.Any())
+            {
+                <div class="alert alert-danger" role="alert">
+                    @foreach (var error in ErrorMessages)
+                    {
+                        <p>@error</p>
+                    }
+                </div>
+            }
+        </div>
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button class="shadow-none" Color=" ButtonColor.Secondary" @onclick="OnHideModalClick">Cofnij</Button>
+        <Button class="shadow-none" Color="ButtonColor.Dark" @onclick="Login">Zaloguj</Button>
+    </FooterTemplate>
+</Modal>
+
+@code {
+    public Modal ModalRef { get; private set; } = default!;
+    UserModel User = new();
+
+    private List<string> ErrorMessages { get; set; } = new List<string>();
+
+    public async Task ShowAsync()
+    {
+        await ModalRef.ShowAsync();
+    }
+
+    private async Task OnHideModalClick()
+    {
+        await ModalRef.HideAsync();
+    }
+
+    private async Task Login()
+    {
+        ErrorMessages.Clear();
+
+        var user = await userManager.FindByNameAsync(User.Username);
+        if (user == null)
+        {
+            ErrorMessages.Add("Niepoprawne dane logowania!");
+            return;
+        }
+
+        var passwordCorrect = await userManager.CheckPasswordAsync(user, User.Password);
+        if (!passwordCorrect)
+        {
+            ErrorMessages.Add("Niepoprawne dane logowania!");
+            return;
+        }
+
+        await protectedSessionStore.SetAsync("sessionStorage", user.UserName ?? "");
+        NavigateToByRole(user);
+    }
+
+    private void NavigateToByRole(User user)
+    {
+        if (user.Role == "User")
+            navigationManager.NavigateTo("/user");
+        if (user.Role == "Admin")
+            navigationManager.NavigateTo("/admin");
+    }
+}

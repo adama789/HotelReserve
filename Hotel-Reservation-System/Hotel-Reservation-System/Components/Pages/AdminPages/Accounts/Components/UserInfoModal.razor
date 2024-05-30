@@ -1,0 +1,75 @@
+﻿@inject UserManager<User> userManager
+@inject IJSRuntime jsRuntime
+
+
+<ConfirmDialog @ref="dialog" />
+<Modal @ref="infoModal" title="Informacje" IsVerticallyCentered="true">
+    <BodyTemplate>
+		<div class="info-main">
+			<div class="photo">
+				<img src="/Assets/users-icon.png" />
+			</div>
+			<div class="user-info">
+				<h5>Id: @user?.Id</h5>
+				<h5>Login: @user?.UserName</h5>
+				<h5>Rola: @user?.Role</h5>
+				<h5>Liczba rezerwacji: @user?.Reservations.Count</h5>
+			</div>
+		</div>
+    </BodyTemplate>
+    <FooterTemplate>
+		<Button class="shadow-none mx-2" Color="ButtonColor.Secondary" @onclick="OnHideModalClick">Close</Button>
+		<Button class="shadow-none mx-2" Color="ButtonColor.Danger" @onclick="ShowConfirmationAsync">Usuń</Button>
+    </FooterTemplate>
+</Modal>
+
+@code {
+	private Modal infoModal = default!;
+
+	User? user = new();
+
+	protected override void OnInitialized()
+	{
+		user = new User();
+	}
+
+	public async Task ShowAsync(string userName)
+	{
+		user = await userManager.FindByNameAsync(userName);
+		await infoModal.ShowAsync();
+	}
+
+	private async Task OnHideModalClick()
+	{
+		await infoModal.HideAsync();
+	}
+
+	private ConfirmDialog dialog = default!;
+
+	private async Task ShowConfirmationAsync()
+	{
+		if (user is not null)
+		{
+			var options = new ConfirmDialogOptions
+				{
+					YesButtonText = "Tak",
+					YesButtonColor = ButtonColor.Danger,
+					NoButtonText = "Nie",
+					NoButtonColor = ButtonColor.Secondary,
+					IsVerticallyCentered = true
+				};
+
+			var confirmation = await dialog.ShowAsync(
+				title: "Uwaga",
+				message1: $"Czy na pewno chcesz usunąć użytkownika {user.UserName}?",
+				message2: "Chcesz kontynuować?",
+				confirmDialogOptions: options);
+
+			if (confirmation)
+			{
+				await userManager.DeleteAsync(user);
+				await infoModal.HideAsync();
+			}
+		}
+	}
+}
