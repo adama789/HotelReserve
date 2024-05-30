@@ -1,9 +1,4 @@
-﻿using HotelReservationSystem.Components.Data;
-using Microsoft.AspNetCore.Identity;
-using Moq;
-using Xunit;
-
-public class UserTests
+﻿public class UserTests
 {
 	[Fact]
 	public void Constructor_SetsPropertiesCorrectly()

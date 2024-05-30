@@ -1,8 +1,4 @@
-﻿using HotelReservationSystem.Components.Data;
-using HotelReservationSystem.Components.Pages.AdminPages.Rooms.Components;
-using Microsoft.EntityFrameworkCore;
-using Moq;
-using Xunit;
+﻿using HotelReservationSystem.Components.Pages.AdminPages.Rooms.Components;
 
 public class RoomTypeTests
 {
