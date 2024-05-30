@@ -4,7 +4,7 @@
 The **Hotel Reservation System** is a web application designed to manage hotel bookings. It allows users to search for available rooms, make reservations, and manage their bookings. Hotel administrators can manage room availability, view reservations, and perform other administrative tasks.
 
 ## Key Features
-- **User Authentication**: Sign up, log in and manage accounts.
+- **User Authentication**: Sign up and log in.
 - **Room Search and Booking**: Search for available rooms based on criteria such as date, room type, and price.
 - **Booking Management**: View and manage existing reservations.
 - **Admin Dashboard**: Manage room availability, view bookings, and perform administrative tasks.
