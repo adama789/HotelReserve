@@ -14,9 +14,9 @@
                              Items="roomsPoints"
                              SeriesType="@SeriesType.Area"
                              Name="Pokoje"
-                             XValue="@(e => e.Index)"
+                             XValue="@(e => e.Day)"
                              YValue="@(e => e.Index)"
-                             OrderByDescending="e => e.Y" />
+                             OrderByDescending="e => e.X" />
         </ApexChart>
     </div>
     <div class="chart-container" @onclick='(() => navigationManager.NavigateTo("/accounts"))'>
@@ -52,6 +52,7 @@
 @code {
     private List<Room> rooms = new();
     private List<GraphPoint> roomsPoints = new();
+    private List<Room> availableRooms = new();
     private ApexChartOptions<GraphPoint> optionsRooms = new ApexChartOptions<GraphPoint>();
 
     private List<User> users = new();
@@ -68,8 +69,15 @@
         users = User.GetUsers(dbContext);
         reservations = Reservation.GetReservationsList(dbContext);
         usersPoints = GraphPoint.GeneratePoints(users.Count);
-        roomsPoints = GraphPoint.GeneratePoints(rooms.Count);
         reservationsPoints = GraphPoint.GeneratePoints(reservations.Count);
+
+        var firstDayOfMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+        var firstDay = new DateTimeOffset(firstDayOfMonth).ToOffset(TimeSpan.Zero);
+
+        var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+        var lastDay = new DateTimeOffset(lastDayOfMonth).ToOffset(TimeSpan.Zero);
+
+        roomsPoints = GraphPoint.GenerateRoomPoints(dbContext);
 
         GraphPoint.SetChartOptions(optionsRooms);
         GraphPoint.SetChartOptions(optionsUsers);

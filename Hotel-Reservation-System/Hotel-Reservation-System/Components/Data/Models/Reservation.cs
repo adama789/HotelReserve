@@ -85,6 +85,7 @@ public class Reservation
 
 		return outdatedReservations.Count;
     }
+
     public static async Task RemoveReservation(DataContext dbContext, Reservation reservation)
     {
         dbContext.Reservations.Remove(reservation);

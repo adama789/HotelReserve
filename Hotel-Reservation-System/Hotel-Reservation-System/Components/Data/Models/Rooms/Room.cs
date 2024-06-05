@@ -1,5 +1,6 @@
 ﻿using HotelReservationSystem.Components.Data;
 using HotelReservationSystem.Components.Pages.AdminPages.Rooms.Components;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 public class Room
 {
