@@ -33,6 +33,22 @@ public class RoomTests
 
 		Assert.False(result);
 	}
+
+    [Fact]
+    public void IsRoomCorrect_ShouldReturnFalse_WhenRoomCapacityIsIncorrect()
+    {
+        var room = new Room
+        {
+            Id = 1,
+            Capacity = -10,
+            Name = "Jednoosobowy",
+            PricePerNight = 100.0M
+        };
+
+        var result = Room.IsRoomCorrect(room);
+
+        Assert.False(result);
+    }
     public static List<GraphPoint> GeneratePoints(int count)
     {
         var points = new List<GraphPoint>();
