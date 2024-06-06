@@ -1,4 +1,6 @@
-﻿public class RoomTests
+﻿using HotelReservationSystem.Components.Pages.AdminPages.AdminHome.Components;
+
+public class RoomTests
 {
 	[Fact]
 	public void IsRoomCorrect_ShouldReturnTrue_WhenRoomIsCorrect()
@@ -31,4 +33,12 @@
 
 		Assert.False(result);
 	}
+    public static List<GraphPoint> GeneratePoints(int count)
+    {
+        var points = new List<GraphPoint>();
+        for (int i = count; i > 0; i--)
+            points.Add(new GraphPoint { Index = i, Day = i.ToString() });
+
+        return points;
+    }
 }

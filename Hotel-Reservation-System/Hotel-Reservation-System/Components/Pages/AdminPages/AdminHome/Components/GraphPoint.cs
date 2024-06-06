@@ -17,6 +17,13 @@ public class GraphPoint
         return points;
     }
 
+    public static bool IsPointsCorrect(int count)
+    {
+        if (count <= 0)
+            return false;
+        return true;
+    }
+
     public static List<GraphPoint> GenerateRoomPoints(DataContext dbContext)
     {
         var currentDateTime = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
@@ -109,6 +116,7 @@ public class GraphPoint
                     Show = false
                 }
             }
+            
         };
         options.Tooltip = new Tooltip
         {
