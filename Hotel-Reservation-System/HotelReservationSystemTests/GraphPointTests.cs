@@ -13,6 +13,26 @@ public class GraphPointTests
     }
 
     [Fact]
+    public void IsListGraphPointCorrect_ShouldReturnFalse()
+    {
+        var points = GraphPoint.GeneratePoints(-10);
+
+        var result = GraphPoint.IsPointsCorrect(points.Count);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void IsListGraphPointCorrect_ShouldReturnTrue()
+    {
+        var points = GraphPoint.GeneratePoints(10);
+
+        var result = GraphPoint.IsPointsCorrect(points.Count);
+
+        Assert.True(result);
+    }
+
+    [Fact]
     public void IsListGraphPointCorrect_ShouldReturnFalse_WhenGraphPointIsIncorrect()
     {
         var points = GraphPoint.GeneratePoints(0);
