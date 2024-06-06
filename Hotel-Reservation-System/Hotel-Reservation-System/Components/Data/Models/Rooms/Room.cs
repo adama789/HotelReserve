@@ -43,6 +43,26 @@ public class Room
 		return availableRooms;
 	}
 
+    public static List<Room> GetAvailableRooms(DataContext dbContext, DateTimeOffset? day)
+    {
+        var roomsWithType = dbContext.Rooms.ToList();
+
+        var reservationsInPeriod = dbContext.Reservations
+            .Where(r => r.CheckInDate < day && r.CheckOutDate > day)
+            .ToList();
+
+        var availableRooms = new List<Room>();
+        foreach (var room in roomsWithType)
+        {
+            bool isRoomAvailable = !reservationsInPeriod.Any(r => r.Room.Id == room.Id);
+
+            if (isRoomAvailable)
+                availableRooms.Add(room);
+        }
+
+        return availableRooms;
+    }
+
     public static List<Room> GetRooms(DataContext dbContext)
     {
         var rooms = dbContext.Rooms.ToList();

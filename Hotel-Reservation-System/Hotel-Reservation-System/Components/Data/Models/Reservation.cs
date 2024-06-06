@@ -91,4 +91,13 @@ public class Reservation
         dbContext.Reservations.Remove(reservation);
         await dbContext.SaveChangesAsync();
     }
+
+    public static List<Reservation> GetReservationsBySpecificDay(DataContext dbContext, DateTimeOffset? day)
+    {
+        var reservationsInPeriod = dbContext.Reservations
+            .Where(r => r.CheckInDate < day && r.CheckOutDate > day)
+            .ToList();
+
+        return reservationsInPeriod;
+    }
 }

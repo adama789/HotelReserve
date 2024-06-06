@@ -29,6 +29,7 @@
         cursor: pointer;
         overflow: hidden;
         text-align: center;
+        
         resize: none;
     }
 
@@ -56,6 +57,7 @@
             font-size: 1px;
             color: #2d2f31;
         }
+
 
 @media (max-width: 768px) {
     .graph-list div {
