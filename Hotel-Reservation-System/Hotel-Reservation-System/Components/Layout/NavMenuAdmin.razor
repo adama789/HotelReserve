@@ -17,9 +17,9 @@
 </nav>
 
 @code {
+    SessionController sessionController = new();
     private async Task Logout()
     {
-        await protectedSessionStore.SetAsync("sessionStorage", "");
-        navigationManager.NavigateTo("/");
+        await sessionController.Logout(protectedSessionStore, navigationManager);
     }
 }

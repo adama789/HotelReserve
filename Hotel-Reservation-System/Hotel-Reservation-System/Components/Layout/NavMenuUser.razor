@@ -27,10 +27,10 @@
     private PriceModal priceModal = default!;
     private UserReservationModal userReservationModal = default!;
 
+    SessionController sessionController = new();
     private async Task Logout()
     {
-        await protectedSessionStore.SetAsync("sessionStorage", "");
-        navigationManager.NavigateTo("/");
+        await sessionController.Logout(protectedSessionStore, navigationManager);
     }
 
     private async Task ShowPriceOnClick()

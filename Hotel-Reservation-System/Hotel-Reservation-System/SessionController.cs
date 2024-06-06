@@ -37,4 +37,10 @@ public class SessionController
         if (user.Role == "Admin")
             navigationManager.NavigateTo("/admin");
     }
+
+    public async Task Logout(ProtectedSessionStorage protectedSessionStore, NavigationManager navigationManager)
+    {
+        await protectedSessionStore.SetAsync("sessionStorage", "");
+        navigationManager.NavigateTo("/");
+    }
 }
