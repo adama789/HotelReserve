@@ -29,3 +29,8 @@ The **Hotel Reservation System** is a web application designed to manage hotel b
 4. **Navigate to the application**
    ```bash
    Open your browser and go to https://localhost:5001.
+
+## Screenshots
+![img2](https://github.com/adama789/HotelReserve/assets/116965567/6adf0f89-dca8-4d8f-b274-518f6a66f5f9)
+![img4](https://github.com/adama789/HotelReserve/assets/116965567/998751e6-2c3d-44ae-85aa-16dc5e9f4503)
+![img6](https://github.com/adama789/HotelReserve/assets/116965567/15c2a47a-012e-48b2-8373-7ce03b0c4fc5)
